@@ -6,6 +6,7 @@ Ce projet expose une API FastAPI permettant de calculer le score et l’écart e
 
 ## 🧱 Structure du projet
 
+```bash
 calcul_module/
 ├── app/
 │   ├── api/
@@ -19,11 +20,11 @@ calcul_module/
 │   ├── services/
 │   │   └── score.py              # Logique métier : calculs, écarts
 │   ├── utils/
-│   │   └── helpers.py            # Fonctions utilitaires (optionnelles)
+│   │   └── helpers.py            # Fonctions utilitaires
 │   └── main.py                   # Point d’entrée de l’app FastAPI
 ├── requirements.txt              # Dépendances Python
-├── Dockerfile                    # Fichier Docker pour conteneuriser l’API
-├── .dockerignore                 # Fichiers/dossiers ignorés par Docker
+├── Dockerfile                    # Image Docker
+├── .dockerignore                 # Fichiers ignorés par Docker
 ├── README.md                     # Documentation du projet
 
 
@@ -65,3 +66,12 @@ Ensuite, aller sur :
 
 ✅ Route test : http://localhost:8000/api/v1/ping
 
+🐳 Utilisation avec Docker
+
+1. Construire l’image Docker
+
+docker build -t calcul-api .
+
+2. Lancer le conteneur
+
+docker run -p 8000:8000 calcul-api
