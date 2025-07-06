@@ -1,11 +1,38 @@
-def calculer_score(employe_competences: list[str], requises: list[str]) -> float:
-    score = len(set(employe_competences) & set(requises)) / len(requises)
-    return round(score, 2)
+def calculer_score(employe_competences, poste_competences):
+    total = len(poste_competences)
+    match = 0
 
-def ecart_competence(employe_competences: list[str], requises: list[str]) -> dict:
-    manque = list(set(requises) - set(employe_competences))
-    extra = list(set(employe_competences) - set(requises))
-    return {"manquantes": manque, "en_trop": extra}
+    for comp_requise in poste_competences:
+        for comp in employe_competences:
+            if comp.nom == comp_requise.nom and comp.niveau >= comp_requise.niveau_min:
+                match += 1
+                break
+
+    return round(match / total, 2) if total > 0 else 0
+
+
+def ecart_competence(employe_competences, poste_competences):
+    manquantes = []
+    en_trop = []
+
+    noms_requises = {cr.nom for cr in poste_competences}
+    noms_employe = {c.nom for c in employe_competences}
+
+    for cr in poste_competences:
+        matching = next((c for c in employe_competences if c.nom == cr.nom), None)
+        if not matching or matching.niveau < cr.niveau_min:
+            manquantes.append({
+                "nom": cr.nom,
+                "niveau_requis": cr.niveau_min,
+                "niveau_obtenu": matching.niveau if matching else None
+            })
+
+    for c in employe_competences:
+        if c.nom not in noms_requises:
+            en_trop.append({ "nom": c.nom, "niveau": c.niveau })
+
+    return { "manquantes": manquantes, "en_trop": en_trop }
+
 
 def calculer_top_scores(fiches_employes, fiche_poste, seuil):
     results = []

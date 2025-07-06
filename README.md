@@ -65,10 +65,8 @@ Ensuite, aller sur :
 
 🐳 Utilisation avec Docker
 
-1. Construire l’image Docker
-
+#Construire l’image Docker
 docker build -t calcul-api .
 
-2. Lancer le conteneur
-
+#Lancer le conteneur
 docker run -p 8000:8000 calcul-api
