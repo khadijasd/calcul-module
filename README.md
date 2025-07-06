@@ -31,31 +31,28 @@ calcul_module/
 
 
 
-⚙️ Préparation de l'environnement local
-🔧 Étapes pour créer et lancer le projet localement
-1. Cloner le projet
+## ⚙️ Préparation de l'environnement local
 
-git clone <URL_DU_PROJET>
-
+```bash
+# Cloner le projet
+git clone https://github.com/khadijasd/calcul-module.git
 cd calcul_module
-2. Créer un environnement virtuel
 
+# Créer un environnement virtuel
 python -m venv venv
 
-3. Activer l'environnement virtuel
+# Activer l'environnement
+venv\Scripts\activate  # Windows
+# ou
+source venv/bin/activate  # Linux/macOS
 
-Sous Windows :
-venv\Scripts\activate
-
-Sous Linux/macOS :
-source venv/bin/activate
-
-4. Ajouter les dépendances dans requirements.txt
+# Ajouter les dépendances dans requirements.txt
 fastapi
 uvicorn
 
-5. Installer les dépendances
+# Installer les dépendances
 pip install -r requirements.txt
+
 
 🚀 Lancer l’application en local
 uvicorn app.main:app --reload
