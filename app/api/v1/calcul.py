@@ -1,10 +1,19 @@
 from fastapi import APIRouter
-from app.models.fiche_employe import FicheEmploye
-from app.models.fiche_poste import FichePoste
-from app.services.score import calculer_top_scores
+from typing import List
+from app.models.fiche_poste import JobDescription
+from app.models.fiche_employe import Employee
+from app.models.result import Result
+from app.services.score import calculate_score, get_top_employees
 
 router = APIRouter()
 
-@router.post("/scores")
-def get_top_scores(fiches_employes: list[FicheEmploye], fiche_poste: FichePoste, seuil: float):
-    return calculer_top_scores(fiches_employes, fiche_poste, seuil)
+@router.post("/calculate", response_model=List[Result])
+def calculate(job_description: JobDescription, employees: List[Employee]):
+    results = calculate_score(job_description, employees)
+    return results
+
+@router.post("/calculate/top", response_model=List[Result])
+def calculate_top(job_description: JobDescription, employees: List[Employee], threshold: float = 70.0):
+    results = calculate_score(job_description, employees)
+    top = get_top_employees(results, threshold=threshold)
+    return top

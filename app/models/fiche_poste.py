@@ -1,10 +1,12 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List
 
-class CompetenceRequise(BaseModel):
-    nom: str
-    niveau_min: int = Field(..., ge=1, le=5, description="Niveau minimal requis entre 1 et 5")
+class RequiredSkillLevel(BaseModel):
+    skill_id: int
+    skill_name: str
+    level_id: int
+    level_value: int
 
-class FichePoste(BaseModel):
-    poste: str
-    competences_requises: List[CompetenceRequise]
+class JobDescription(BaseModel):
+    job_description_id: int
+    required_skills_level: List[RequiredSkillLevel]

@@ -1,12 +1,12 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List
 
-class Competence(BaseModel):
-    nom: str
-    niveau: int = Field(..., ge=1, le=5, description="Niveau entre 1 et 5")
+class SkillLevel(BaseModel):
+    skill_id: int
+    skill_name: str
+    level_id: int
+    level_value: int
 
-class FicheEmploye(BaseModel):
-    id: int
-    nom: str
-    prenom: str
-    competences: List[Competence]
+class Employee(BaseModel):
+    employee_id: int
+    actual_skills_level: List[SkillLevel]

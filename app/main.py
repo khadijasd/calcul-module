@@ -1,10 +1,6 @@
 from fastapi import FastAPI
-from app.api.v1.calcul import router as calcul_router
+from app.api.v1 import calcul
 
-app = FastAPI(
-    title="Module Calcul Score",
-    description="API pour calculer score employés selon compétences",
-    version="1.0"
-)
+app = FastAPI()
 
-app.include_router(calcul_router, prefix="/api/v1/calcul")
+app.include_router(calcul.router, prefix="/api/v1", tags=["Calcul"])

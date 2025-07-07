@@ -1,56 +1,73 @@
-def calculer_score(employe_competences, poste_competences):
-    total = len(poste_competences)
-    match = 0
+from typing import List, Dict
+from ..models.fiche_employe import Employee, SkillLevel
+from ..models.fiche_poste import JobDescription, RequiredSkillLevel
+from ..models.result import Result, SkillGapDetail
 
-    for comp_requise in poste_competences:
-        for comp in employe_competences:
-            if comp.nom == comp_requise.nom and comp.niveau >= comp_requise.niveau_min:
-                match += 1
-                break
-
-    return round(match / total, 2) if total > 0 else 0
-
-
-def ecart_competence(employe_competences, poste_competences):
-    manquantes = []
-    en_trop = []
-
-    noms_requises = {cr.nom for cr in poste_competences}
-    noms_employe = {c.nom for c in employe_competences}
-
-    for cr in poste_competences:
-        matching = next((c for c in employe_competences if c.nom == cr.nom), None)
-        if not matching or matching.niveau < cr.niveau_min:
-            manquantes.append({
-                "nom": cr.nom,
-                "niveau_requis": cr.niveau_min,
-                "niveau_obtenu": matching.niveau if matching else None
-            })
-
-    for c in employe_competences:
-        if c.nom not in noms_requises:
-            en_trop.append({ "nom": c.nom, "niveau": c.niveau })
-
-    return { "manquantes": manquantes, "en_trop": en_trop }
-
-
-def calculer_top_scores(fiches_employes, fiche_poste, seuil):
+def calculate_score(job_description: JobDescription, employees: List[Employee]) -> List[Result]:
     results = []
 
-    for employe in fiches_employes:
-        score = calculer_score(employe.competences, fiche_poste.competences_requises)
-        if score >= seuil:
-            ecart = ecart_competence(employe.competences, fiche_poste.competences_requises)
-            results.append({
-                "id": employe.id,
-                "nom": employe.nom,
-                "prenom": employe.prenom,
-                "score": score,
-                "competences_requises": fiche_poste.competences_requises,
-                "competences_acquises": employe.competences,
-                "ecart": ecart
-            })
+    for employee in employees:
+        skill_gap_details = []
+        total_corrected_level = 0  # Somme des niveaux acquis limités au requis
+        total_required_level = 0   # Somme des niveaux requis
 
-    # Trier par score décroissant et renvoyer les 10 premiers
-    results.sort(key=lambda x: x["score"], reverse=True)
-    return results[:10]
+        # Création d'un dictionnaire des compétences de l'employé pour un accès rapide
+        employee_skills: Dict[int, SkillLevel] = {
+            skill.skill_id: skill for skill in employee.actual_skills_level
+        }
+
+        for required_skill in job_description.required_skills_level:
+            required_level = required_skill.level_value
+            total_required_level += required_level
+
+            if required_skill.skill_id in employee_skills:
+                employee_skill = employee_skills[required_skill.skill_id]
+                actual_level = employee_skill.level_value
+
+                # Corriger si le niveau réel dépasse le requis
+                corrected_level = min(actual_level, required_level)
+                total_corrected_level += corrected_level
+
+                gap = actual_level - required_level
+
+                skill_gap_details.append(SkillGapDetail(
+                    skill_id=required_skill.skill_id,
+                    skill_name=required_skill.skill_name,
+                    required_skill_level=required_level,
+                    actual_skill_level=actual_level,
+                    gap=gap
+                ))
+            else:
+                # Compétence absente : niveau réel = 0
+                gap = -required_level
+                total_corrected_level += 0  # Pas de point
+                skill_gap_details.append(SkillGapDetail(
+                    skill_id=required_skill.skill_id,
+                    skill_name=required_skill.skill_name,
+                    required_skill_level=required_level,
+                    actual_skill_level=0,
+                    gap=gap
+                ))
+
+        score = (total_corrected_level / total_required_level) * 100 if total_required_level > 0 else 0
+
+        results.append(Result(
+            job_description_id=job_description.job_description_id,
+            employee_id=employee.employee_id,
+            score=round(score, 2),
+            skill_gap_details=skill_gap_details
+        ))
+
+    return results
+
+#********************************Filtre*********************************
+
+
+
+def get_top_employees(results: List[Result], threshold: float = 70.0, top_n: int = 10) -> List[Result]:
+    # Filtrer ceux qui atteignent le seuil
+    filtered = [r for r in results if r.score >= threshold]
+    # Trier par score décroissant
+    sorted_results = sorted(filtered, key=lambda r: r.score, reverse=True)
+    # Retourner les top N
+    return sorted_results[:top_n]
