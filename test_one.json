@@ -1,0 +1,16 @@
+{
+  "job_description": {
+    "job_description_id": 101,
+    "required_skills_level": [
+      { "skill_id": 1, "skill_name": "JavaScript", "level_id": 5, "level_value": 5 },
+      { "skill_id": 2, "skill_name": "Angular", "level_id": 4, "level_value": 4 }
+    ]
+  },
+  "employee": {
+    "employee_id": 201,
+    "actual_skills_level": [
+      { "skill_id": 1, "skill_name": "JavaScript", "level_id": 4, "level_value": 4 },
+      { "skill_id": 2, "skill_name": "Angular", "level_id": 5, "level_value": 5 }
+    ]
+  }
+}

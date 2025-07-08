@@ -5,7 +5,8 @@ from ..models.result import Result, SkillGapDetail
 
 
 
-#calculer score pour une fiche de poste et un employe
+# Calculer le score pour une fiche de poste et un seul employé
+
 def calculate_score_for_employee(job_description: JobDescription, employee: Employee) -> Result:
     skill_gap_details = []
     total_corrected_level = 0
@@ -49,7 +50,8 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     
     
 
-#calculer score 1 fiche de poste et liste des employees
+# Calculer le score pour une fiche de poste et une liste d'employés
+
 def calculate_score(job_description: JobDescription, employees: List[Employee]) -> List[Result]:
     results = []
     for employee in employees:
@@ -58,9 +60,7 @@ def calculate_score(job_description: JobDescription, employees: List[Employee]) 
     return results
 
 
-#********************************Filtre*********************************
-
-
+# Filtrer les meilleurs employés
 
 def get_top_employees(results: List[Result], threshold: float = 70.0, top_n: int = 10) -> List[Result]:
     # Filtrer ceux qui atteignent le seuil
