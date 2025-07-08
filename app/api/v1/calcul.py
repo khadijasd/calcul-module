@@ -3,7 +3,7 @@ from typing import List
 from app.models.fiche_poste import JobDescription
 from app.models.fiche_employe import Employee
 from app.models.result import Result
-from app.models.request import SingleCalculationRequest
+from app.models.single_calculation_request import SingleCalculationRequest
 from app.services.score import calculate_score_for_employee
 from app.services.score import calculate_score, get_top_employees
 
