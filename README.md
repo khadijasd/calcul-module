@@ -36,32 +36,7 @@ calcul_module/
 ```bash
 # Cloner le projet
 git clone https://github.com/khadijasd/calcul-module.git
-cd calcul_module
 
-# Créer un environnement virtuel
-python -m venv venv
-
-# Activer l'environnement
-venv\Scripts\activate  # Windows
-# ou
-source venv/bin/activate  # Linux/macOS
-
-# Ajouter les dépendances dans requirements.txt
-fastapi
-uvicorn
-
-# Installer les dépendances
-pip install -r requirements.txt
-
-
-🚀 Lancer l’application en local
-uvicorn app.main:app --reload
-
-Ensuite, aller sur :
-
-🧪 Swagger Docs : http://localhost:8000/docs
-
-✅ Route test : http://localhost:8000/api/v1/ping
 
 🐳 Utilisation avec Docker
 
@@ -69,4 +44,9 @@ Ensuite, aller sur :
 docker build -t calcul-api .
 
 #Lancer le conteneur
-docker run -p 8000:8000 calcul-api
+docker run -p 8000:8000 calcul-
+
+Ensuite, aller sur :
+
+🧪 Swagger Docs : http://localhost:8000/docs
+
