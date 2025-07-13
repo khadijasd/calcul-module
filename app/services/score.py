@@ -9,45 +9,81 @@ from ..models.result import Result, SkillGapDetail
 
 def calculate_score_for_employee(job_description: JobDescription, employee: Employee) -> Result:
     skill_gap_details = []
-    total_corrected_level = 0
-    total_required_level = 0
+    total_corrected = 0
+    total_required = 0
+    bonus_points = 0
+    missing_must_have_skills = []
 
     employee_skills: Dict[int, SkillLevel] = {
         skill.skill_id: skill for skill in employee.actual_skills_level
     }
 
     for required_skill in job_description.required_skills_level:
+        skill_id = required_skill.skill_id
         required_level = required_skill.level_value
-        total_required_level += required_level
+        weight = required_skill.weight
+        skill_type = required_skill.type
 
-        if required_skill.skill_id in employee_skills:
-            employee_skill = employee_skills[required_skill.skill_id]
-            actual_level = employee_skill.level_value
-            corrected_level = min(actual_level, required_level)
-            total_corrected_level += corrected_level
-            gap = actual_level - required_level
-        else:
-            actual_level = 0
-            gap = -required_level
-            corrected_level = 0
+        actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else 0
+        gap = actual_level - required_level
+        corrected_level = min(actual_level, required_level)
+
+        if skill_type == "must_have":
+            if actual_level < required_level:
+                missing_must_have_skills.append(required_skill.skill_name)
+            total_corrected += corrected_level * weight
+            total_required += required_level * weight
+
+        elif skill_type == "nice_to_have":
+            if required_level > 0:
+                bonus = (corrected_level / required_level) * weight
+                bonus_points += bonus
 
         skill_gap_details.append(SkillGapDetail(
-            skill_id=required_skill.skill_id,
+            skill_id=skill_id,
             skill_name=required_skill.skill_name,
             required_skill_level=required_level,
             actual_skill_level=actual_level,
             gap=gap
         ))
 
-    score = (total_corrected_level / total_required_level) * 100 if total_required_level > 0 else 0
+    score_base = (total_corrected / total_required) * 100 if total_required > 0 else 0
+    total_score = round(score_base + bonus_points, 2)
+    
+    messages = []
+
+    for required_skill in job_description.required_skills_level:
+       skill_id = required_skill.skill_id
+       required_level = required_skill.level_value
+       skill_name = required_skill.skill_name
+       skill_type = required_skill.type
+
+       actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else None
+
+       if skill_type == "must_have":
+         if actual_level is None:
+            messages.append(f"❌ Compétence obligatoire manquante : {skill_name}.")
+         elif actual_level < required_level:
+            messages.append(
+                f"⚠️ Niveau insuffisant pour la compétence obligatoire {skill_name} (requis : {required_level}, actuel : {actual_level})."
+            )
+
+    if not messages:
+        messages.append("✅ Cet employé est un bon fit pour ce poste.")
+
+    message = "\n".join(messages)
+
 
     return Result(
         job_description_id=job_description.job_description_id,
         employee_id=employee.employee_id,
-        score=round(score, 2),
-        skill_gap_details=skill_gap_details
+        score_base=round(score_base, 2),
+        bonus=round(bonus_points, 2),
+        total_score=total_score,
+        skill_gap_details=skill_gap_details,
+        message=message
     )
-    
+
     
 
 # Calculer le score pour une fiche de poste et une liste d'employés
