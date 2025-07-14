@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict  
+from typing import List, Dict, Union  
 
 class SkillGapDetail(BaseModel):
     skill_id: int
@@ -16,4 +16,5 @@ class Result(BaseModel):
     total_score: float        # somme des deux
     skill_gap_details: List[SkillGapDetail]
     message: str = ""
-    training_recommendations: List[Dict] = [] 
+    training_recommendations: List[Dict[str, Union[str, int, float]]]
+ 

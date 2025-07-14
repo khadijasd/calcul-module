@@ -2,22 +2,39 @@ from typing import List, Dict
 from ..models.fiche_employe import Employee, SkillLevel
 from ..models.fiche_poste import JobDescription, RequiredSkillLevel
 from ..models.result import Result, SkillGapDetail
-from ..data.training_db import TRAINING_DATABASE  # New import
+from ..data.training_db import TRAINING_DATABASE, find_similar_courses
+from ..data.skill_embeddings import get_skill_vector
 
-def get_training_recommendations(skill_name: str, current_level: int, target_level: int) -> List[Dict]:
-    """Helper function to get training recommendations for a skill gap"""
+def get_enhanced_training_recommendations(skill_name: str, current_level: int, target_level: int) -> List[Dict]:
+    """Enhanced version with fallback to similar skills"""
     recommendations = []
+    
     for level in range(current_level + 1, target_level + 1):
+        # Try exact match first
         if skill_name in TRAINING_DATABASE and level in TRAINING_DATABASE[skill_name]:
             course = TRAINING_DATABASE[skill_name][level]
             recommendations.append({
                 "skill": skill_name,
-                "current_level": current_level,
-                "target_level": level,
                 "course_id": course["course_id"],
                 "course_name": course["name"],
+                "level": level,
+                "match_type": "exact",
                 "duration": course["duration"]
             })
+        else:
+            # Fallback to similar skills
+            similar_courses = find_similar_courses(skill_name)
+            for course in similar_courses:
+                if course["level"] >= level:
+                    recommendations.append({
+                        "skill": skill_name,
+                        "course_id": course["course_id"],
+                        "course_name": f"{course['name']} (covers {skill_name})",
+                        "level": course["level"],
+                        "match_type": "similar",
+                        "duration": course["duration"]
+                    })
+    
     return recommendations
 
 def calculate_score_for_employee(job_description: JobDescription, employee: Employee) -> Result:
@@ -26,7 +43,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     total_required = 0
     bonus_points = 0
     missing_must_have_skills = []
-    training_recommendations = []  # New: Store training recommendations
+    training_recommendations = []
 
     employee_skills: Dict[int, SkillLevel] = {
         skill.skill_id: skill for skill in employee.actual_skills_level
@@ -37,15 +54,15 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         required_level = required_skill.level_value
         weight = required_skill.weight
         skill_type = required_skill.type
-        skill_name = required_skill.skill_name  # Get skill name for training lookup
+        skill_name = required_skill.skill_name
 
         actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else 0
         gap = actual_level - required_level
         corrected_level = min(actual_level, required_level)
 
-        # New: Generate training recommendations if gap exists
+        # Generate enhanced training recommendations
         if gap < 0:
-            trainings = get_training_recommendations(
+            trainings = get_enhanced_training_recommendations(
                 skill_name,
                 actual_level,
                 required_level
@@ -57,11 +74,8 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
                 missing_must_have_skills.append(skill_name)
             total_corrected += corrected_level * weight
             total_required += required_level * weight
-
-        elif skill_type == "nice_to_have":
-            if required_level > 0:
-                bonus = (corrected_level / required_level) * weight
-                bonus_points += bonus
+        elif skill_type == "nice_to_have" and required_level > 0:
+            bonus_points += (corrected_level / required_level) * weight
 
         skill_gap_details.append(SkillGapDetail(
             skill_id=skill_id,
@@ -75,34 +89,20 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     total_score = round(score_base + bonus_points, 2)
     
     messages = []
-    
     for required_skill in job_description.required_skills_level:
-       skill_id = required_skill.skill_id
-       required_level = required_skill.level_value
-       skill_name = required_skill.skill_name
-       skill_type = required_skill.type
+        skill_id = required_skill.skill_id
+        actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else None
+        
+        if required_skill.type == "must_have":
+            if actual_level is None:
+                messages.append(f"❌ Missing required skill: {required_skill.skill_name}.")
+            elif actual_level < required_skill.level_value:
+                messages.append(
+                    f"⚠️ Insufficient level for {required_skill.skill_name} "
+                    f"(required: {required_skill.level_value}, current: {actual_level})."
+                )
 
-
-       actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else None
-
-
-       if skill_type == "must_have":
-         if actual_level is None:
-            messages.append(f"❌ Compétence obligatoire manquante : {skill_name}.")
-         elif actual_level < required_level:
-            messages.append(
-                f"⚠️ Niveau insuffisant pour la compétence obligatoire {skill_name} (requis : {required_level}, actuel : {actual_level})."
-            )
-
-
-    if not messages:
-        messages.append("✅ Cet employé est un bon fit pour ce poste.")
-
-
-    message = "\n".join(messages)
-
-
-
+    message = "\n".join(messages) if messages else "✅ Good fit for this position."
 
     return Result(
         job_description_id=job_description.job_description_id,
@@ -112,9 +112,12 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         total_score=total_score,
         skill_gap_details=skill_gap_details,
         message=message,
-        training_recommendations=training_recommendations  # New field
+        training_recommendations=sorted(
+            training_recommendations,
+            key=lambda x: (x["match_type"] == "exact", x["level"]),
+            reverse=True
+        )[:3]  # Return top 3 recommendations
     )
-
     
 
 # Calculer le score pour une fiche de poste et une liste d'employés

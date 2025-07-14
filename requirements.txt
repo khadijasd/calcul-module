@@ -1,2 +1,9 @@
 fastapi
 uvicorn
+
+
+
+# ML dependencies
+numpy
+scikit-learn
+fasttext

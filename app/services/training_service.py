@@ -1,14 +1,9 @@
-from ..data.training_db import TRAINING_DATABASE
-from ..models.fiche_employe import SkillLevel
-from ..models.training import TrainingRecommendation  # New model
+from typing import List, Dict
+from .recommendation_engine import RecommendationEngine
+from ..models.recommendation import TrainingRecommendation
 
-def get_training_recommendations(
-    skill_name: str, 
-    current_level: int, 
-    target_level: int
-) -> List[TrainingRecommendation]:
-    recommendations = []
-    for level in range(current_level + 1, target_level + 1):
-        if skill_name in TRAINING_DATABASE and level in TRAINING_DATABASE[skill_name]:
-            recommendations.append(TRAINING_DATABASE[skill_name][level])
-    return recommendations
+engine = RecommendationEngine()
+
+def get_training_recommendations_v2(skill_gaps: List[Dict]) -> List[TrainingRecommendation]:
+    """New version with ML recommendations"""
+    return engine.recommend(skill_gaps)
