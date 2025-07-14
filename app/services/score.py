@@ -2,10 +2,23 @@ from typing import List, Dict
 from ..models.fiche_employe import Employee, SkillLevel
 from ..models.fiche_poste import JobDescription, RequiredSkillLevel
 from ..models.result import Result, SkillGapDetail
+from ..data.training_db import TRAINING_DATABASE  # New import
 
-
-
-# Calculer le score pour une fiche de poste et un seul employé
+def get_training_recommendations(skill_name: str, current_level: int, target_level: int) -> List[Dict]:
+    """Helper function to get training recommendations for a skill gap"""
+    recommendations = []
+    for level in range(current_level + 1, target_level + 1):
+        if skill_name in TRAINING_DATABASE and level in TRAINING_DATABASE[skill_name]:
+            course = TRAINING_DATABASE[skill_name][level]
+            recommendations.append({
+                "skill": skill_name,
+                "current_level": current_level,
+                "target_level": level,
+                "course_id": course["course_id"],
+                "course_name": course["name"],
+                "duration": course["duration"]
+            })
+    return recommendations
 
 def calculate_score_for_employee(job_description: JobDescription, employee: Employee) -> Result:
     skill_gap_details = []
@@ -13,6 +26,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     total_required = 0
     bonus_points = 0
     missing_must_have_skills = []
+    training_recommendations = []  # New: Store training recommendations
 
     employee_skills: Dict[int, SkillLevel] = {
         skill.skill_id: skill for skill in employee.actual_skills_level
@@ -23,14 +37,24 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         required_level = required_skill.level_value
         weight = required_skill.weight
         skill_type = required_skill.type
+        skill_name = required_skill.skill_name  # Get skill name for training lookup
 
         actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else 0
         gap = actual_level - required_level
         corrected_level = min(actual_level, required_level)
 
+        # New: Generate training recommendations if gap exists
+        if gap < 0:
+            trainings = get_training_recommendations(
+                skill_name,
+                actual_level,
+                required_level
+            )
+            training_recommendations.extend(trainings)
+
         if skill_type == "must_have":
             if actual_level < required_level:
-                missing_must_have_skills.append(required_skill.skill_name)
+                missing_must_have_skills.append(skill_name)
             total_corrected += corrected_level * weight
             total_required += required_level * weight
 
@@ -41,7 +65,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
 
         skill_gap_details.append(SkillGapDetail(
             skill_id=skill_id,
-            skill_name=required_skill.skill_name,
+            skill_name=skill_name,
             required_skill_level=required_level,
             actual_skill_level=actual_level,
             gap=gap
@@ -51,14 +75,16 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     total_score = round(score_base + bonus_points, 2)
     
     messages = []
-
+    
     for required_skill in job_description.required_skills_level:
        skill_id = required_skill.skill_id
        required_level = required_skill.level_value
        skill_name = required_skill.skill_name
        skill_type = required_skill.type
 
+
        actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else None
+
 
        if skill_type == "must_have":
          if actual_level is None:
@@ -68,10 +94,14 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
                 f"⚠️ Niveau insuffisant pour la compétence obligatoire {skill_name} (requis : {required_level}, actuel : {actual_level})."
             )
 
+
     if not messages:
         messages.append("✅ Cet employé est un bon fit pour ce poste.")
 
+
     message = "\n".join(messages)
+
+
 
 
     return Result(
@@ -81,7 +111,8 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         bonus=round(bonus_points, 2),
         total_score=total_score,
         skill_gap_details=skill_gap_details,
-        message=message
+        message=message,
+        training_recommendations=training_recommendations  # New field
     )
 
     
