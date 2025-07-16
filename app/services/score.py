@@ -21,19 +21,28 @@ def get_enhanced_training_recommendations(skill_name: str, current_level: int, t
                 "match_type": "exact",
                 "duration": course["duration"]
             })
-        else:
-            # Fallback to similar skills
-            similar_courses = find_similar_courses(skill_name)
-            for course in similar_courses:
+            continue  # Skip similar courses if exact match found
+        
+        # Fallback to similar skills with proper validation
+        similar_courses = find_similar_courses(skill_name)
+        for course in similar_courses:
+            # Skip if course is missing required fields
+            if not isinstance(course, dict) or 'level' not in course:
+                continue
+            
+            try:
                 if course["level"] >= level:
                     recommendations.append({
                         "skill": skill_name,
-                        "course_id": course["course_id"],
-                        "course_name": f"{course['name']} (covers {skill_name})",
+                        "course_id": course.get("course_id", "unknown"),
+                        "course_name": f"{course.get('name', 'Unnamed Course')} (covers {skill_name})",
                         "level": course["level"],
                         "match_type": "similar",
-                        "duration": course["duration"]
+                        "duration": course.get("duration", "N/A")
                     })
+            except (TypeError, KeyError) as e:
+                logging.warning(f"Skipping invalid course: {course}. Error: {str(e)}")
+                continue
     
     return recommendations
 
