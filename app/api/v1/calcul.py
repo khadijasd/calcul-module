@@ -6,6 +6,7 @@ from app.models.result import Result
 from app.models.single_calculation_request import SingleCalculationRequest
 from app.services.score import calculate_score_for_employee
 from app.services.score import calculate_score, get_top_employees
+from app.services.training_recommender import TrainingRecommender
 
 router = APIRouter()
 
@@ -24,3 +25,13 @@ def calculate_top(job_description: JobDescription, employees: List[Employee], th
     results = calculate_score(job_description, employees)
     top = get_top_employees(results, threshold=threshold)
     return top
+
+
+
+
+
+@router.post("/evaluate")
+async def evaluate_fit(employee: Employee, job: JobDescription):
+    recommender = TrainingRecommender()
+    recommendations = recommender.recommend(employee, job)
+    return {"training_recommendations": recommendations}
