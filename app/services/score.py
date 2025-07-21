@@ -76,11 +76,18 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
                 messages.append(
                     f"⚠️ Insufficient level for required skill {skill_name} (required: {required_level}, actual: {actual_level})."
                 )
+                
+        if skill_type == "nice_to_have":
+            if actual_level is None or actual_level < required_level:
+                messages.append(f"💡 Could improve in nice-to-have skill: {skill_name} (expected: {required_level}, actual: {actual_level}).")
+
 
     if not messages:
         messages.append("✅ This employee is a good match for the job.")
 
     message = "\n".join(messages)
+    
+    
 
     return Result(
         job_description_id=job_description.job_description_id,
@@ -108,12 +115,15 @@ def calculate_score(job_description: JobDescription, employees: List[Employee]) 
 
 # Filtrer les meilleurs employés
 
+
 def get_top_employees(results: List[Result], threshold: float = 70.0, top_n: int = 10) -> List[Result]:
-    # Filter employees who reach the minimum threshold
-    filtered = [r for r in results if r.total_score >= threshold]
-    # Sort by total_score descending
-    sorted_results = sorted(filtered, key=lambda r: r.total_score, reverse=True)
-    # Return top N
+    # Filter those with score_base above the threshold
+    filtered = [r for r in results if r.score_base >= threshold]
+
+    # Sort descending by score_base only
+    sorted_results = sorted(filtered, key=lambda r: r.score_base, reverse=True)
+
+    # Return the top N results
     return sorted_results[:top_n]
 
 
