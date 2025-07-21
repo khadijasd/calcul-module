@@ -7,7 +7,6 @@ from ..models.result import Result, SkillGapDetail
 
 # Calculer le score pour une fiche de poste et un seul employé
 
-
 def calculate_score_for_employee(job_description: JobDescription, employee: Employee) -> Result:
     skill_gap_details = []
     total_corrected = 0.0
@@ -55,13 +54,13 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
             gap=gap
         ))
 
-    # Final score calculation
+    # Final score calculation (score_base capped at 100)
     score_base = (total_corrected / total_required) * 100 if total_required > 0 else 0
-    total_score = round(score_base + bonus_points, 2)
+    score_base = round(min(score_base, 100), 2)
+    bonus_points = round(bonus_points, 2)
 
     # Build feedback message
     messages = []
-
     for required_skill in job_description.required_skills_level:
         skill_id = required_skill.skill_id
         required_level = required_skill.level_value
@@ -86,12 +85,12 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     return Result(
         job_description_id=job_description.job_description_id,
         employee_id=employee.employee_id,
-        score_base=round(score_base, 2),
-        bonus=round(bonus_points, 2),
-        total_score=total_score,
+        score_base=score_base,
+        bonus=bonus_points,
         skill_gap_details=skill_gap_details,
         message=message
     )
+ 
 
 
 
