@@ -67,10 +67,10 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         skill_name = required_skill.skill_name
         skill_type = required_skill.type
 
-        actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else None
+        actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else 0
 
         if skill_type == "must_have":
-            if actual_level is None:
+            if actual_level == 0:
                 messages.append(f"❌ Missing required skill: {skill_name}.")
             elif actual_level < required_level:
                 messages.append(
@@ -78,7 +78,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
                 )
                 
         if skill_type == "nice_to_have":
-            if actual_level is None or actual_level < required_level:
+            if skill_type == "nice_to_have" and actual_level < required_level:
                 messages.append(f"💡 Could improve in nice-to-have skill: {skill_name} (expected: {required_level}, actual: {actual_level}).")
 
 
