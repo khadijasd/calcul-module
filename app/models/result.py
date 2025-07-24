@@ -11,5 +11,7 @@ class SkillGapDetail(BaseModel):
 class Result(BaseModel):
     job_description_id: int
     employee_id: int
+    name: str                 # ➕ Added
+    position: str 
     score: float
     skill_gap_details: List[SkillGapDetail]
