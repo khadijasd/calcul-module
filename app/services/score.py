@@ -92,6 +92,8 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     return Result(
         job_description_id=job_description.job_description_id,
         employee_id=employee.employee_id,
+        name=employee.name,                 
+        position=employee.position,
         score_base=score_base,
         bonus=bonus_points,
         skill_gap_details=skill_gap_details,
