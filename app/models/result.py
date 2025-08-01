@@ -1,5 +1,9 @@
 from pydantic import BaseModel
-from typing import List, Dict, Union  
+from typing import List, Dict, Union
+
+from app.models.recommendation import TrainingRecommendation
+from app.models.training import TrainingCourse  
+
 
 class SkillGapDetail(BaseModel):
     skill_id: int
@@ -7,6 +11,22 @@ class SkillGapDetail(BaseModel):
     required_skill_level: int
     actual_skill_level: int
     gap: int
+    
+    
+    
+
+class TrainingRecommendation(BaseModel):
+    skill_name: str
+    gap: int
+    recommendations: List[TrainingCourse]
+
+    class Config:
+        orm_mode = True
+        
+        
+        
+        
+        
 
 class Result(BaseModel):
     job_description_id: int
@@ -16,5 +36,5 @@ class Result(BaseModel):
     total_score: float        # somme des deux
     skill_gap_details: List[SkillGapDetail]
     message: str = ""
-    training_recommendations: List[Dict[str, Union[str, int, float]]]
+    training_recommendations: List[TrainingRecommendation]
  

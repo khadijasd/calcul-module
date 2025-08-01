@@ -1,10 +1,17 @@
 from pydantic import BaseModel
-from typing import List
+from typing import Optional, List
 
-class TrainingRecommendation(BaseModel):
-    course_id: str
+class TrainingCourse(BaseModel):
+    id: int
     name: str
     duration: str
+    level: int
     skill_name: str
-    current_level: int
-    target_level: int
+    tags: List[str]
+    format: Optional[str] = None
+    location: Optional[str] = None
+    url: Optional[str] = None
+    provider: Optional[str] = None
+
+    class Config:
+        orm_mode = True

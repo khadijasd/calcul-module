@@ -3,6 +3,9 @@ from app.models.fiche_employe import Employee, SkillLevel
 from app.models.fiche_poste import JobDescription, RequiredSkillLevel
 from app.models.result import Result, SkillGapDetail
 from app.services.training_recommender import TrainingRecommender
+from app.data.training_repository import TrainingRepository
+from app.database import SessionLocal
+
 
 def calculate_score_for_employee(job_description: JobDescription, employee: Employee) -> Result:
     skill_gap_details = []
@@ -33,7 +36,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
                 gap=gap
             ))
 
-        # Calcul score (must have / nice to have)
+        # Calcul score (must_have / nice_to_have)
         if required_skill.type == "must_have":
             total_corrected += min(actual_level, required_level) * required_skill.weight
             total_required += required_level * required_skill.weight
@@ -50,8 +53,10 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         ))
 
     # 2. Recommandations IA
-    recommender = TrainingRecommender()
-    training_recommendations = recommender.recommend(gaps, employee_skills)
+    db = SessionLocal()
+    repo = TrainingRepository(db)
+    recommender = TrainingRecommender(repo)
+    training_recommendations = recommender.recommend_detailed(gaps, employee_skills)
 
     # 3. Messages d'avertissement
     messages = []
@@ -80,10 +85,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         message=message,
         training_recommendations=training_recommendations
     )
-    
-    
-    
-# Calculer le score pour une fiche de poste et une liste d'employés
+
 
 def calculate_score(job_description: JobDescription, employees: List[Employee]) -> List[Result]:
     results = []
@@ -93,8 +95,6 @@ def calculate_score(job_description: JobDescription, employees: List[Employee]) 
     return results
 
 
-# Filtrer les meilleurs employés
-
 def get_top_employees(results: List[Result], threshold: float = 70.0, top_n: int = 10) -> List[Result]:
     # Filtrer ceux qui atteignent le seuil
     filtered = [r for r in results if r.score >= threshold]
@@ -102,6 +102,3 @@ def get_top_employees(results: List[Result], threshold: float = 70.0, top_n: int
     sorted_results = sorted(filtered, key=lambda r: r.score, reverse=True)
     # Retourner les top N
     return sorted_results[:top_n]
-
-
-
