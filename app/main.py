@@ -17,6 +17,3 @@ app.include_router(
     tags=["Training"]
 )
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}

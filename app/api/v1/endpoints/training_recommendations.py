@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from typing import List, Dict
 from app.models.fiche_employe import Employee
 from app.models.fiche_poste import JobDescription
 from app.models.result import SkillGapDetail
+from app.data.training_repository import TrainingRepository
 from app.services.training_recommender import TrainingRecommender
-from typing import List, Dict
+from app.database import get_db
 
 router = APIRouter()
 
@@ -11,8 +14,11 @@ router = APIRouter()
 async def recommend_trainings_detailed(
     employee: Employee,
     job: JobDescription,
-    recommender: TrainingRecommender = Depends()
+    db: Session = Depends(get_db),
 ):
+    repo = TrainingRepository(db)
+    recommender = TrainingRecommender(repo)
+
     employee_skills = {skill.skill_name: skill.level_value for skill in employee.actual_skills_level}
     required_skills = {skill.skill_name: skill.level_value for skill in job.required_skills_level}
 
@@ -29,10 +35,8 @@ async def recommend_trainings_detailed(
             )
             gaps.append(gap)
 
-    # Appelle la nouvelle méthode
     detailed_recommendations = recommender.recommend_detailed(gaps, employee_skills)
 
     return {
         "recommendations_by_gap": detailed_recommendations
     }
-

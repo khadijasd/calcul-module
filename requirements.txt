@@ -8,3 +8,7 @@ matplotlib
 pandas
 spacy
 sentence-transformers
+
+# DB dependencies
+sqlalchemy
+pymysql
