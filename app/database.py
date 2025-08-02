@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "mysql+pymysql://root:@host.docker.internal/training_db"
+DATABASE_URL = "postgresql+psycopg2://postgres:root@host.docker.internal:5432/training_db"
+
+
   # adapte si besoin le port/mot de passe
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
