@@ -1,9 +1,15 @@
-from fastapi import APIRouter
-from typing import List
+from fastapi import APIRouter, Depends
+from typing import Dict, List
+
+from sqlalchemy.orm import Session
+from app.database import get_db
 from app.models.fiche_poste import JobDescription
 from app.models.fiche_employe import Employee
+from app.models.match_request import MatchRequest
 from app.models.result import Result
 from app.models.single_calculation_request import SingleCalculationRequest
+from app.services.analytics_service import compute_global_statistics
+from app.services.inverse_matcher import match_jobs_for_employee, match_jobs_with_cosine_similarity
 from app.services.score import calculate_score_for_employee
 from app.services.score import calculate_score, get_top_employees
 from app.services.training_recommender import TrainingRecommender
@@ -35,3 +41,22 @@ async def evaluate_fit(employee: Employee, job: JobDescription):
     recommender = TrainingRecommender()
     recommendations = recommender.recommend(employee, job)
     return {"training_recommendations": recommendations}
+
+
+
+
+@router.post("/statistics/")
+def get_statistics(job_description: JobDescription, employees: List[Employee]):
+    results = calculate_score(job_description, employees)
+    return compute_global_statistics(results)
+
+
+@router.post("/match-jobs", response_model=List[Result])
+def get_matching_jobs_for_employee(request: MatchRequest):
+    return match_jobs_for_employee(request.employee, request.job_descriptions)
+
+
+
+@router.post("/match-jobs/ai", response_model=List[Dict])
+def get_matching_jobs_ai(request: MatchRequest):
+    return match_jobs_with_cosine_similarity(request.employee, request.job_descriptions)

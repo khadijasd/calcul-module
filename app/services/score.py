@@ -1,7 +1,7 @@
 from typing import List, Dict
 from app.models.fiche_employe import Employee, SkillLevel
 from app.models.fiche_poste import JobDescription, RequiredSkillLevel
-from app.models.result import Result, SkillGapDetail
+from app.models.result import Result, SkillGapDetail, TrainingRecommendation, TrainingCourse
 from app.services.training_recommender import TrainingRecommender
 from app.data.training_repository import TrainingRepository
 from app.database import SessionLocal
@@ -56,7 +56,19 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     db = SessionLocal()
     repo = TrainingRepository(db)
     recommender = TrainingRecommender(repo)
-    training_recommendations = recommender.recommend_detailed(gaps, employee_skills)
+    raw_recommendations = recommender.recommend_detailed(gaps, employee_skills)
+
+    # ✅ Conversion explicite en objets Pydantic
+    training_recommendations: List[TrainingRecommendation] = []
+    for rec in raw_recommendations:
+        courses = [TrainingCourse(**course) for course in rec["recommendations"]]
+        training_recommendations.append(
+            TrainingRecommendation(
+                skill_name=rec["skill_name"],
+                gap=rec["gap"],
+                recommendations=courses
+            )
+        )
 
     # 3. Messages d'avertissement
     messages = []
@@ -85,6 +97,13 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         message=message,
         training_recommendations=training_recommendations
     )
+
+
+
+
+
+
+
 
 
 def calculate_score(job_description: JobDescription, employees: List[Employee]) -> List[Result]:
