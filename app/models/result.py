@@ -16,4 +16,5 @@ class Result(BaseModel):
     total_score: float        # somme des deux
     skill_gap_details: List[SkillGapDetail]
     message: str = ""
+    feedback: List[str] = []  
     training_recommendations: List[Dict] = [] 

@@ -44,7 +44,7 @@ git clone https://github.com/khadijasd/calcul-module.git
 docker build -t calcul-api .
 
 #Lancer le conteneur
-docker run -p 8000:8000 calcul-
+docker run -p 8000:8000 calcul-api
 
 Ensuite, aller sur :
 

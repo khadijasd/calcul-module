@@ -3,24 +3,20 @@ from ..models.fiche_employe import Employee, SkillLevel
 from ..models.fiche_poste import JobDescription, RequiredSkillLevel
 from ..models.result import Result, SkillGapDetail
 
-
-
-# Calculer le score pour une fiche de poste et un seul employé
-
 def calculate_score_for_employee(job_description: JobDescription, employee: Employee) -> Result:
     skill_gap_details = []
     total_corrected = 0.0
     total_required = 0.0
     bonus_points = 0.0
 
-    # Build a dictionary of employee skills for quick access
     employee_skills: Dict[int, SkillLevel] = {
         skill.skill_id: skill for skill in employee.actual_skills_level
     }
 
-    # Retrieve type weights defined by recruiter
     must_have_weight = job_description.must_have_weight
     nice_to_have_weight = job_description.nice_to_have_weight
+
+    feedback = []  # ✅ New field for detailed skill-based feedback
 
     for required_skill in job_description.required_skills_level:
         skill_id = required_skill.skill_id
@@ -33,19 +29,25 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         gap = actual_level - required_level
         corrected_level = min(actual_level, required_level)
 
-        # Compute global weight: type weight × individual skill weight
         type_weight = must_have_weight if skill_type == "must_have" else nice_to_have_weight
         global_weight = type_weight * skill_weight
 
-        # Score base contribution
         total_corrected += corrected_level * global_weight
         total_required += required_level * global_weight
 
-        # Bonus if actual level exceeds required
         if actual_level > required_level:
             bonus_points += (actual_level - required_level) * global_weight
 
-        # Store skill gap details
+        # Collect detailed feedback per skill
+        if actual_level == 0:
+            feedback.append(f"❌ Missing skill: {skill_name}")
+        elif actual_level < required_level:
+            feedback.append(f"⚠️ Needs improvement in {skill_name} (required: {required_level}, actual: {actual_level})")
+        elif actual_level == required_level:
+            feedback.append(f"✅ Meets expectation in {skill_name}")
+        else:  # actual_level > required_level
+            feedback.append(f"🌟 Very good in {skill_name} (actual: {actual_level}, required: {required_level})")
+
         skill_gap_details.append(SkillGapDetail(
             skill_id=skill_id,
             skill_name=skill_name,
@@ -54,53 +56,32 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
             gap=gap
         ))
 
-    # Final score calculation (score_base capped at 100)
     score_base = (total_corrected / total_required) * 100 if total_required > 0 else 0
     score_base = round(min(score_base, 100), 2)
     bonus_points = round(bonus_points, 2)
 
-    # Build feedback message
+    # Summary message
     messages = []
-    for required_skill in job_description.required_skills_level:
-        skill_id = required_skill.skill_id
-        required_level = required_skill.level_value
-        skill_name = required_skill.skill_name
-        skill_type = required_skill.type
-
-        actual_level = employee_skills.get(skill_id).level_value if skill_id in employee_skills else 0
-
-        if skill_type == "must_have":
-            if actual_level == 0:
-                messages.append(f"❌ Missing required skill: {skill_name}.")
-            elif actual_level < required_level:
-                messages.append(
-                    f"⚠️ Insufficient level for required skill {skill_name} (required: {required_level}, actual: {actual_level})."
-                )
-                
-        if skill_type == "nice_to_have":
-            if skill_type == "nice_to_have" and actual_level < required_level:
-                messages.append(f"💡 Could improve in nice-to-have skill: {skill_name} (expected: {required_level}, actual: {actual_level}).")
-
-
-    if not messages:
+    for f in feedback:
+        if "❌" in f or "⚠️" in f:
+            messages.append("⚠️ Some required skills are missing or below expectations.")
+            break
+    else:
         messages.append("✅ This employee is a good match for the job.")
 
     message = "\n".join(messages)
-    
-    
 
     return Result(
         job_description_id=job_description.job_description_id,
         employee_id=employee.employee_id,
-        name=employee.name,                 
+        name=employee.name,
         position=employee.position,
         score_base=score_base,
         bonus=bonus_points,
         skill_gap_details=skill_gap_details,
-        message=message
+        message=message,
+        feedback=feedback  # ✅ include the detailed feedback here
     )
- 
-
 
 
 
