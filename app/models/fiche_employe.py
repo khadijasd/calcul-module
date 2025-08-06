@@ -9,4 +9,6 @@ class SkillLevel(BaseModel):
 
 class Employee(BaseModel):
     employee_id: int
+    name: str                  
+    position: str
     actual_skills_level: List[SkillLevel]
