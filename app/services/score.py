@@ -117,9 +117,11 @@ def calculate_score(job_description: JobDescription, employees: List[Employee]) 
 
 
 def get_top_employees(results: List[Result], threshold: float = 70.0, top_n: int = 10) -> List[Result]:
-    # Filtrer ceux qui atteignent le seuil
-    filtered = [r for r in results if r.score >= threshold]
-    # Trier par score décroissant
-    sorted_results = sorted(filtered, key=lambda r: r.score, reverse=True)
-    # Retourner les top N
+    # Filter those with score_base above the threshold
+    filtered = [r for r in results if r.score_base >= threshold]
+
+    # Sort descending by score_base only
+    sorted_results = sorted(filtered, key=lambda r: r.score_base, reverse=True)
+
+    # Return the top N results
     return sorted_results[:top_n]
