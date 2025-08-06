@@ -84,7 +84,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     score_base = (total_corrected / total_required) * 100 if total_required > 0 else 0
     score_base = round(min(score_base, 100), 2)
     bonus_points = round(bonus_points, 2)
-    total_score = round(score_base + bonus_points, 2)
+    #total_score = round(score_base + bonus_points, 2)
 
     # Summary message
     if any("❌" in f or "⚠️" in f for f in feedback):
@@ -100,7 +100,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         position=employee.position,
         score_base=score_base,
         bonus=bonus_points,
-        total_score=total_score,
+        #total_score=total_score,
         skill_gap_details=skill_gap_details,
         message=message,
         feedback=feedback,
