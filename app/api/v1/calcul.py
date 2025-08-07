@@ -10,6 +10,7 @@ from app.models.result import Result
 from app.models.single_calculation_request import SingleCalculationRequest
 from app.services.analytics_service import compute_global_statistics
 from app.services.inverse_matcher import match_jobs_for_employee, match_jobs_with_cosine_similarity
+from app.services.progression_tracker import get_progress_for_employee
 from app.services.score import calculate_score_for_employee
 from app.services.score import calculate_score, get_top_employees
 from app.services.training_recommender import TrainingRecommender
@@ -60,3 +61,5 @@ def get_matching_jobs_for_employee(request: MatchRequest):
 @router.post("/match-jobs/ai", response_model=List[Dict])
 def get_matching_jobs_ai(request: MatchRequest):
     return match_jobs_with_cosine_similarity(request.employee, request.job_descriptions)
+
+

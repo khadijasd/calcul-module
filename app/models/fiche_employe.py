@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import List
 
+
+
 class SkillLevel(BaseModel):
     skill_id: int
     skill_name: str
@@ -12,3 +14,4 @@ class Employee(BaseModel):
     name: str                  
     position: str
     actual_skills_level: List[SkillLevel]
+    

@@ -79,6 +79,11 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
     training_recommendations = recommender.recommend_detailed(gaps, {
         skill.skill_name: skill.level_value for skill in employee.actual_skills_level
     })
+    
+    
+    
+    
+    
 
     # Score calculations
     score_base = (total_corrected / total_required) * 100 if total_required > 0 else 0
@@ -91,6 +96,11 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         message = "⚠️ Some required skills are missing or below expectations."
     else:
         message = "✅ This employee is a good match for the job."
+        
+        
+        
+        
+    
 
     # ✅ Final result object
     return Result(
