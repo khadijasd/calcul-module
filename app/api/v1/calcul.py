@@ -9,8 +9,7 @@ from app.models.match_request import MatchRequest
 from app.models.result import Result
 from app.models.single_calculation_request import SingleCalculationRequest
 from app.services.analytics_service import compute_global_statistics
-from app.services.inverse_matcher import match_jobs_for_employee, match_jobs_with_cosine_similarity
-from app.services.progression_tracker import get_progress_for_employee
+from app.services.inverse_matcher import match_best_jobs_for_all_employees, match_jobs_for_employee
 from app.services.score import calculate_score_for_employee
 from app.services.score import calculate_score, get_top_employees
 from app.services.training_recommender import TrainingRecommender
@@ -28,10 +27,16 @@ def calculate(job_description: JobDescription, employees: List[Employee]):
     return results
 
 @router.post("/calculate/top", response_model=List[Result])
-def calculate_top(job_description: JobDescription, employees: List[Employee], threshold: float = 70.0):
+def calculate_top(
+    job_description: JobDescription,
+    employees: List[Employee],
+    threshold: float = 70.0,
+    top_n: int = 5 
+):
     results = calculate_score(job_description, employees)
-    top = get_top_employees(results, threshold=threshold)
+    top = get_top_employees(results, threshold=threshold, top_n=top_n)
     return top
+
 
 
 
@@ -58,8 +63,8 @@ def get_matching_jobs_for_employee(request: MatchRequest):
 
 
 
-@router.post("/match-jobs/ai", response_model=List[Dict])
-def get_matching_jobs_ai(request: MatchRequest):
-    return match_jobs_with_cosine_similarity(request.employee, request.job_descriptions)
 
 
+@router.post("/matching/employees-to-jobs", response_model=Dict[int, List[Result]])
+def match_employees_to_jobs(employees: List[Employee], job_descriptions: List[JobDescription]):
+    return match_best_jobs_for_all_employees(employees, job_descriptions)

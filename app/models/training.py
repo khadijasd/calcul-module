@@ -7,7 +7,7 @@ class TrainingCourse(BaseModel):
     duration: str
     level: int
     skill_name: str
-    tags: List[str]
+   # tags: List[str]
     format: Optional[str] = None
     location: Optional[str] = None
     url: Optional[str] = None

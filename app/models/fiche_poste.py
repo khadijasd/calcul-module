@@ -14,5 +14,5 @@ class JobDescription(BaseModel):
     required_skills_level: List[RequiredSkillLevel]
     must_have_weight: float  # e.g., 0.7
     nice_to_have_weight: float  # e.g., 0.3
-    progress_history = relationship("ProgressRecord", back_populates="job_description", cascade="all, delete-orphan")
+   
 
