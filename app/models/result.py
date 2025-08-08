@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Dict, Union
 
-from app.models.recommendation import TrainingRecommendation
+#from app.models.recommendation import TrainingRecommendation
 from app.models.training import TrainingCourse  
 
 
@@ -37,5 +37,5 @@ class Result(BaseModel):
     skill_gap_details: List[SkillGapDetail]
     message: str = ""
     feedback: List[str]
-    training_recommendations: List[TrainingRecommendation]
+    #training_recommendations: List[TrainingRecommendation]
  

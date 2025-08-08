@@ -46,6 +46,10 @@ docker build -t calcul-api .
 #Lancer le conteneur
 docker run -p 8000:8000 calcul-api
 
+#Lancer avec Docker Compose
+docker-compose up --build
+
+
 Ensuite, aller sur :
 
 🧪 Swagger Docs : http://localhost:8000/docs
