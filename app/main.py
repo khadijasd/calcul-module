@@ -1,4 +1,4 @@
-from app.api.v1.endpoints import training_recommendations
+from app.api.v1.endpoints import skills, training_recommendations, trainings
 from fastapi import FastAPI
 from app.api.v1 import calcul  
 
@@ -25,3 +25,7 @@ app.include_router(
     tags=["Training"]
 )
 
+
+
+app.include_router(skills.router, prefix="/api/v1", tags=["Skills"])
+app.include_router(trainings.router, prefix="/api/v1", tags=["Trainings"])

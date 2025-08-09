@@ -37,5 +37,5 @@ class Result(BaseModel):
     skill_gap_details: List[SkillGapDetail]
     message: str = ""
     feedback: List[str]
-    #training_recommendations: List[TrainingRecommendation]
+    training_recommendations: List[TrainingRecommendation]
  

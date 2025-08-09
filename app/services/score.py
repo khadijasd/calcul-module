@@ -1,7 +1,10 @@
 from typing import List, Dict
+from app.data.training_repository import TrainingRepository
+from app.database import SessionLocal
 from app.models.fiche_employe import Employee, SkillLevel
 from app.models.fiche_poste import JobDescription
 from app.models.result import Result, SkillGapDetail
+from app.services.training_recommender import TrainingRecommender
 #from app.services.training_recommender import TrainingRecommender
 #from app.data.training_repository import TrainingRepository
 #from app.database import SessionLocal
@@ -73,12 +76,12 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         ))
 
     # 🧠 AI-based training recommendation
-   # db = SessionLocal()
-    #repo = TrainingRepository(db)
-    #recommender = TrainingRecommender(repo)
-    #training_recommendations = recommender.recommend_detailed(gaps, {
-       # skill.skill_name: skill.level_value for skill in employee.actual_skills_level
-    #})
+    db = SessionLocal()
+    repo = TrainingRepository(db)
+    recommender = TrainingRecommender(repo)
+    training_recommendations = recommender.recommend_detailed(gaps, {
+        skill.skill_name: skill.level_value for skill in employee.actual_skills_level
+    })
     
     
     
@@ -114,7 +117,7 @@ def calculate_score_for_employee(job_description: JobDescription, employee: Empl
         skill_gap_details=skill_gap_details,
         message=message,
         feedback=feedback,
-        #training_recommendations=training_recommendations
+        training_recommendations=training_recommendations
     )
 
 

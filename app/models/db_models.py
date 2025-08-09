@@ -3,15 +3,17 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-
 class Skill(Base):
     __tablename__ = "skills"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), unique=True, index=True)  # <--- specify length here
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)  # Ensure autoincrement
+    name = Column(String(255), unique=True, index=True, nullable=False)  # Unique skill names
 
     trainings = relationship("Training", back_populates="skill")
-
-
+    
+    
+    
+    
+    
 class Training(Base):
     __tablename__ = "trainings"
     id = Column(Integer, primary_key=True, index=True)

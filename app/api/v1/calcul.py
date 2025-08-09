@@ -65,6 +65,10 @@ def get_matching_jobs_for_employee(request: MatchRequest):
 
 
 
-@router.post("/matching/employees-to-jobs", response_model=Dict[int, List[Result]])
+
+
+@router.post("/matching/employees-to-jobs", response_model=Dict[str, List[Result]])
 def match_employees_to_jobs(employees: List[Employee], job_descriptions: List[JobDescription]):
-    return match_best_jobs_for_all_employees(employees, job_descriptions)
+    matches = match_best_jobs_for_all_employees(employees, job_descriptions)
+    # Convert integer keys to string keys to be JSON compatible
+    return {str(employee_id): results for employee_id, results in matches.items()}
